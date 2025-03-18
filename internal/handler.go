@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/MarcoVitoC/memori/internal/service"
 )
 
 type Server struct {
@@ -23,8 +24,11 @@ func (s *Server) Mount() http.Handler {
 
 	r.Use(middleware.Timeout(60 * time.Second))
 
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Hello World!"))
+	svc := service.NewService()
+	
+	r.Route("/diaries", func(r chi.Router) {
+		r.Get("/", svc.Diary.GetAll)
+		r.Post("/", svc.Diary.Create)
 	})
 
 	return r
