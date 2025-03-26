@@ -5,13 +5,16 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/MarcoVitoC/memori/internal/repository"
+	"github.com/MarcoVitoC/memori/internal/service"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/MarcoVitoC/memori/internal/service"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Server struct {
 	Addr string
+	DB *pgxpool.Pool
 }
 
 func (s *Server) Mount() http.Handler {
@@ -24,7 +27,8 @@ func (s *Server) Mount() http.Handler {
 
 	r.Use(middleware.Timeout(60 * time.Second))
 
-	svc := service.NewService()
+	repo := repository.NewRepository(s.DB)
+	svc := service.NewService(repo)
 	
 	r.Route("/diaries", func(r chi.Router) {
 		r.Get("/", svc.Diary.GetAll)

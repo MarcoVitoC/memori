@@ -1,6 +1,10 @@
 package service
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/MarcoVitoC/memori/internal/repository"
+)
 
 type Service struct {
 	Diary interface {
@@ -9,8 +13,8 @@ type Service struct {
 	}
 }
 
-func NewService() *Service {
-	return &Service{
-		Diary: &DiaryService{},
+func NewService(repo repository.Repository) Service {
+	return Service{
+		Diary: &DiaryService{repo},
 	}
 }
