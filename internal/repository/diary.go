@@ -20,6 +20,31 @@ type DiaryRepository struct {
 	db *pgxpool.Pool
 }
 
+func (r *DiaryRepository) GetAll(ctx context.Context) ([]Diary, error) {
+	query := `SELECT * FROM diaries`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	rows, err := r.db.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	var diaries []Diary
+	for rows.Next() {
+		var diary Diary
+
+		if err := rows.Scan(&diary.ID, &diary.Content, &diary.CreatedAt, &diary.UpdatedAt); err != nil {
+			return nil, err
+		}
+
+		diaries = append(diaries, diary)
+	}
+
+	return diaries, nil
+}
+
 func (r *DiaryRepository) Create(ctx context.Context, newDiary *Diary) error {
 	return withTx(r.db, ctx, func(tx pgx.Tx) error {
 		query := `
