@@ -13,7 +13,10 @@ const QueryTimeoutDuration = 5 * time.Second
 type Repository struct {
 	Diary interface {
 		GetAll(ctx context.Context) ([]Diary, error)
+		GetById(ctx context.Context, id string) (Diary, error)
 		Create(ctx context.Context, diary *Diary) error
+		Update(ctx context.Context, id string, diary *Diary) error
+		Delete(ctx context.Context, id string) error
 	}
 }
 

@@ -32,7 +32,10 @@ func (s *Server) Mount() http.Handler {
 	
 	r.Route("/diaries", func(r chi.Router) {
 		r.Get("/", svc.Diary.GetAll)
+		r.Get("/{id}", svc.Diary.GetById)
 		r.Post("/", svc.Diary.Create)
+		r.Put("/{id}", svc.Diary.Update)
+		r.Delete("/{id}", svc.Diary.Delete)
 	})
 
 	return r

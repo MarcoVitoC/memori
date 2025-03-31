@@ -3,11 +3,12 @@ package service
 import (
 	"net/http"
 
-	"github.com/MarcoVitoC/memori/internal/util"
 	"github.com/MarcoVitoC/memori/internal/repository"
+	"github.com/MarcoVitoC/memori/internal/util"
+	"github.com/go-chi/chi/v5"
 )
 
-type CreateDiaryPayload struct {
+type CreateOrUpdateDiaryPayload struct {
 	Content string `json:"content"`
 }
 
@@ -26,10 +27,23 @@ func (s *DiaryService) GetAll(w http.ResponseWriter, r *http.Request) {
 	util.WriteResponse(w, http.StatusOK, diaries)
 }
 
+func (s *DiaryService) GetById(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	id := chi.URLParam(r, "id")
+	diary, err := s.repo.Diary.GetById(ctx, id)
+	if err != nil {
+		util.WriteError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	util.WriteResponse(w, http.StatusOK, diary)
+}
+
 func (s *DiaryService) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	var payload CreateDiaryPayload
+	var payload CreateOrUpdateDiaryPayload
 	if err := util.ReadJSON(w, r, &payload); err != nil {
 		util.WriteError(w, http.StatusBadRequest, err.Error())
 		return
@@ -45,4 +59,38 @@ func (s *DiaryService) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	util.WriteResponse(w, http.StatusCreated, nil)
+}
+
+func (s *DiaryService) Update(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var payload CreateOrUpdateDiaryPayload
+	if err := util.ReadJSON(w, r, &payload); err != nil {
+		util.WriteError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	id := chi.URLParam(r, "id")
+	updatedDiary := repository.Diary{
+		Content: payload.Content,
+	}
+
+	if err := s.repo.Diary.Update(ctx, id, &updatedDiary); err != nil {
+		util.WriteError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	util.WriteResponse(w, http.StatusOK, nil)
+}
+
+func (s *DiaryService) Delete(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	id := chi.URLParam(r, "id")
+	if err := s.repo.Diary.Delete(ctx, id); err != nil {
+		util.WriteError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	util.WriteResponse(w, http.StatusOK, nil)
 }
