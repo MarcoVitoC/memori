@@ -122,7 +122,7 @@ func (r *DiaryRepository) Update(ctx context.Context, id string, updatedDiary *D
 	})
 }
 
-func (r DiaryRepository) Delete(ctx context.Context, id string) error {
+func (r *DiaryRepository) Delete(ctx context.Context, id string) error {
 	return withTx(r.db, ctx, func(tx pgx.Tx) error {
 		query := `
 			DELETE FROM diaries
