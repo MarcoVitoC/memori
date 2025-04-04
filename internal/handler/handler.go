@@ -29,6 +29,10 @@ func (s *Server) Mount() http.Handler {
 
 	repo := repository.NewRepository(s.DB)
 	svc := service.NewService(repo)
+
+	r.Route("/auth", func(r chi.Router) {
+		r.Post("/register", svc.User.Register)
+	})
 	
 	r.Route("/diaries", func(r chi.Router) {
 		r.Get("/", svc.Diary.GetAll)

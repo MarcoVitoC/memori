@@ -18,11 +18,16 @@ type Repository struct {
 		Update(ctx context.Context, id string, diary *Diary) error
 		Delete(ctx context.Context, id string) error
 	}
+	User interface {
+		Register(ctx context.Context, user *User) error
+		FindByEmail(ctx context.Context, email string) (bool, error)
+	}
 }
 
 func NewRepository(db *pgxpool.Pool) Repository {
 	return Repository{
 		Diary: &DiaryRepository{db},
+		User: &UserRepository{db},
 	}
 }
 

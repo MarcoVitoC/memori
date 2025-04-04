@@ -14,10 +14,14 @@ type Service struct {
 		Update(w http.ResponseWriter, r *http.Request)
 		Delete(w http.ResponseWriter, r *http.Request)
 	}
+	User interface {
+		Register(w http.ResponseWriter, r *http.Request)
+	}
 }
 
 func NewService(repo repository.Repository) Service {
 	return Service{
 		Diary: &DiaryService{repo},
+		User: &UserService{repo},
 	}
 }
