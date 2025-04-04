@@ -6,10 +6,11 @@ import (
 	"github.com/MarcoVitoC/memori/internal/repository"
 	"github.com/MarcoVitoC/memori/internal/util"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-playground/validator/v10"
 )
 
 type CreateOrUpdateDiaryPayload struct {
-	Content string `json:"content"`
+	Content string `json:"content" validate:"required"`
 }
 
 type DiaryService struct {
@@ -46,6 +47,12 @@ func (s *DiaryService) Create(w http.ResponseWriter, r *http.Request) {
 	var payload CreateOrUpdateDiaryPayload
 	if err := util.ReadJSON(w, r, &payload); err != nil {
 		util.WriteError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	validate := validator.New()
+	if err := validate.Struct(payload); err != nil {
+		util.WriteError(w, http.StatusBadRequest, "Content is required!")
 		return
 	}
 	
