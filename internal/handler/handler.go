@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"log"
 	"net/http"
 	"time"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"go.uber.org/zap"
 )
 
 type Server struct {
@@ -45,7 +45,7 @@ func (s *Server) Mount() http.Handler {
 	return r
 }
 
-func (s *Server) Run(mux http.Handler) error {
+func (s *Server) Run(logger *zap.SugaredLogger, mux http.Handler) error {
 	server := http.Server{
 		Addr: s.Addr,
 		Handler: mux,
@@ -54,6 +54,6 @@ func (s *Server) Run(mux http.Handler) error {
 		IdleTimeout: time.Minute,
 	}
 
-	log.Printf("INFO: server has started at %s", s.Addr)
+	logger.Infof("Server has started at %s", s.Addr)
 	return server.ListenAndServe()
 }

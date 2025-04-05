@@ -2,44 +2,47 @@ package main
 
 import (
 	"context"
-	"log"
+	"fmt"
 
 	"github.com/MarcoVitoC/memori/internal/database"
 	"github.com/MarcoVitoC/memori/internal/env"
 	"github.com/MarcoVitoC/memori/internal/handler"
+	"github.com/MarcoVitoC/memori/pkg"
 	"github.com/joho/godotenv"
 )
 
-type dbConfig struct {
-	url string
-	maxConns int
-	minConns int
-}
-
 func main() {
+	logger := pkg.NewLogger()
+
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("ERROR: failed to load .env file with error ", err)
+		logger.Fatalw("Failed to load .env", "error", err)
 	}
 
 	ctx := context.Background()
-	dbCfg := dbConfig{
-		url: env.GetString("DB_URL", "postgres://postgres:password@localhost:5432/memori"),
-		maxConns: env.GetInt("DB_MAX_CONNS", 10),
-		minConns: env.GetInt("DB_MIN_CONNS", 2),
-	}
 
-	db, err := database.Init(ctx, dbCfg.url, dbCfg.maxConns, dbCfg.minConns)
+	dbCfg := database.NewDBConfig(
+		fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
+			env.GetString("DB_USERNAME", "postgres"),
+			env.GetString("DB_PASSWORD", ""),
+			env.GetString("DB_HOST", "localhost"),
+			env.GetString("DB_PORT", "5432"),
+			env.GetString("DB_DATABASE", "memori")),
+		env.GetInt("DB_MAX_CONNS", 10),
+		env.GetInt("DB_MIN_CONNS", 2),
+	)
+
+	db, err := database.Init(ctx, logger, dbCfg)
 	if err != nil {
-		log.Fatal("ERROR: failed to connect to database with error ", err)
+		logger.Fatalw("Failed to connect to database", "error", err)
 	}
 	defer db.Close()
 
 	server := handler.Server{
-		Addr: "localhost:8080",
+		Addr: env.GetString("APP_PORT", ":8080"),
 		DB: db,
 	}
 
 	mux := server.Mount()
-	log.Fatal(server.Run(mux))
+	logger.Fatal(server.Run(logger, mux))
 }
