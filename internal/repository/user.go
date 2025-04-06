@@ -50,7 +50,7 @@ func (r *UserRepository) Register(ctx context.Context, newUser *User) error {
 	})
 }
 
-func (r *UserRepository) FindByEmail(ctx context.Context, email string) (bool, error) {
+func (r *UserRepository) GetByEmail(ctx context.Context, email string) (bool, error) {
 	query := `
 		SELECT id FROM users
 		WHERE email = $1

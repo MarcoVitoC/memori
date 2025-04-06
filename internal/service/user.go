@@ -3,9 +3,10 @@ package service
 import (
 	"net/http"
 
+	"github.com/MarcoVitoC/memori/internal/auth"
+	"github.com/MarcoVitoC/memori/internal/errors"
 	"github.com/MarcoVitoC/memori/internal/repository"
 	"github.com/MarcoVitoC/memori/internal/util"
-	"github.com/go-playground/validator/v10"
 )
 
 type UserService struct {
@@ -23,30 +24,29 @@ func (s *UserService) Register(w http.ResponseWriter, r *http.Request) {
 
 	var payload RegisterUserPayload
 	if err := util.ReadJSON(w, r, &payload); err != nil {
-		util.WriteError(w, http.StatusInternalServerError, err.Error())
+		errors.InternalServerError(w, err.Error())
 		return
 	}
 
-	validate := validator.New()
-	if err := validate.Struct(payload); err != nil {
-		util.WriteError(w, http.StatusBadRequest, err.Error())
+	if errs := util.Validate(payload); len(errs) > 0 {
+		errors.BadRequest(w, errs)
 		return
 	}
 
-	isExist, err := s.repo.User.FindByEmail(ctx, payload.Email)
+	isExist, err := s.repo.User.GetByEmail(ctx, payload.Email)
 	if err != nil {
-		util.WriteError(w, http.StatusInternalServerError, err.Error())
+		errors.InternalServerError(w, err.Error())
 		return
 	}
 
 	if isExist {
-		util.WriteError(w, http.StatusConflict, "User already exists!")
+		errors.Conflict(w, "User already exists!")
 		return
 	}
 
-	hashedPassword, err := util.HashPassword(payload.Password)
+	hashedPassword, err := auth.HashPassword(payload.Password)
 	if err != nil {
-		util.WriteError(w, http.StatusInternalServerError, err.Error())
+		errors.InternalServerError(w, err.Error())
 		return
 	}
 
@@ -57,9 +57,9 @@ func (s *UserService) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := s.repo.User.Register(ctx, &newUser); err != nil {
-		util.WriteError(w, http.StatusInternalServerError, err.Error())
+		errors.InternalServerError(w, err.Error())
 		return
 	}
 
-	util.WriteResponse(w, http.StatusCreated, nil)
+	util.WriteResponse(w, http.StatusCreated, true, nil)
 }

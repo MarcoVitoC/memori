@@ -3,10 +3,10 @@ package service
 import (
 	"net/http"
 
+	"github.com/MarcoVitoC/memori/internal/errors"
 	"github.com/MarcoVitoC/memori/internal/repository"
 	"github.com/MarcoVitoC/memori/internal/util"
 	"github.com/go-chi/chi/v5"
-	"github.com/go-playground/validator/v10"
 )
 
 type CreateOrUpdateDiaryPayload struct {
@@ -22,10 +22,11 @@ func (s *DiaryService) GetAll(w http.ResponseWriter, r *http.Request) {
 
 	diaries, err := s.repo.Diary.GetAll(ctx)
 	if err != nil {
-		util.WriteError(w, http.StatusInternalServerError, err.Error())
+		errors.InternalServerError(w, err.Error())
+		return
 	}
 
-	util.WriteResponse(w, http.StatusOK, diaries)
+	util.WriteResponse(w, http.StatusOK, diaries, nil)
 }
 
 func (s *DiaryService) GetById(w http.ResponseWriter, r *http.Request) {
@@ -34,11 +35,11 @@ func (s *DiaryService) GetById(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	diary, err := s.repo.Diary.GetById(ctx, id)
 	if err != nil {
-		util.WriteError(w, http.StatusInternalServerError, err.Error())
+		errors.InternalServerError(w, err.Error())
 		return
 	}
 
-	util.WriteResponse(w, http.StatusOK, diary)
+	util.WriteResponse(w, http.StatusOK, diary, nil)
 }
 
 func (s *DiaryService) Create(w http.ResponseWriter, r *http.Request) {
@@ -46,13 +47,12 @@ func (s *DiaryService) Create(w http.ResponseWriter, r *http.Request) {
 
 	var payload CreateOrUpdateDiaryPayload
 	if err := util.ReadJSON(w, r, &payload); err != nil {
-		util.WriteError(w, http.StatusBadRequest, err.Error())
+		errors.InternalServerError(w, err.Error())
 		return
 	}
 
-	validate := validator.New()
-	if err := validate.Struct(payload); err != nil {
-		util.WriteError(w, http.StatusBadRequest, "Content is required!")
+	if errs := util.Validate(payload); len(errs) > 0 {
+		errors.BadRequest(w, errs)
 		return
 	}
 	
@@ -61,11 +61,11 @@ func (s *DiaryService) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := s.repo.Diary.Create(ctx, newDiary); err != nil {
-		util.WriteError(w, http.StatusInternalServerError, err.Error())
+		errors.InternalServerError(w, err.Error())
 		return
 	}
 
-	util.WriteResponse(w, http.StatusCreated, nil)
+	util.WriteResponse(w, http.StatusCreated, true, nil)
 }
 
 func (s *DiaryService) Update(w http.ResponseWriter, r *http.Request) {
@@ -73,7 +73,12 @@ func (s *DiaryService) Update(w http.ResponseWriter, r *http.Request) {
 
 	var payload CreateOrUpdateDiaryPayload
 	if err := util.ReadJSON(w, r, &payload); err != nil {
-		util.WriteError(w, http.StatusInternalServerError, err.Error())
+		errors.InternalServerError(w, err.Error())
+		return
+	}
+
+	if errs := util.Validate(payload); len(errs) > 0 {
+		errors.BadRequest(w, errs)
 		return
 	}
 
@@ -83,11 +88,11 @@ func (s *DiaryService) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := s.repo.Diary.Update(ctx, id, &updatedDiary); err != nil {
-		util.WriteError(w, http.StatusInternalServerError, err.Error())
+		errors.InternalServerError(w, err.Error())
 		return
 	}
 
-	util.WriteResponse(w, http.StatusOK, nil)
+	util.WriteResponse(w, http.StatusOK, true, nil)
 }
 
 func (s *DiaryService) Delete(w http.ResponseWriter, r *http.Request) {
@@ -95,9 +100,9 @@ func (s *DiaryService) Delete(w http.ResponseWriter, r *http.Request) {
 
 	id := chi.URLParam(r, "id")
 	if err := s.repo.Diary.Delete(ctx, id); err != nil {
-		util.WriteError(w, http.StatusInternalServerError, err.Error())
+		errors.InternalServerError(w, err.Error())
 		return
 	}
 
-	util.WriteResponse(w, http.StatusOK, nil)
+	util.WriteResponse(w, http.StatusOK, true, nil)
 }

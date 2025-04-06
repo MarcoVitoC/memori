@@ -20,7 +20,7 @@ type Repository struct {
 	}
 	User interface {
 		Register(ctx context.Context, user *User) error
-		FindByEmail(ctx context.Context, email string) (bool, error)
+		GetByEmail(ctx context.Context, email string) (bool, error)
 	}
 }
 
