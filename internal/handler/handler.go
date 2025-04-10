@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/MarcoVitoC/memori/internal/auth"
 	"github.com/MarcoVitoC/memori/internal/repository"
 	"github.com/MarcoVitoC/memori/internal/service"
 	"github.com/go-chi/chi/v5"
@@ -15,6 +16,7 @@ import (
 type Server struct {
 	Addr string
 	DB *pgxpool.Pool
+	Authenticator *auth.JWTAuthenticator
 }
 
 func (s *Server) Mount() http.Handler {
@@ -28,13 +30,17 @@ func (s *Server) Mount() http.Handler {
 	r.Use(middleware.Timeout(60 * time.Second))
 
 	repo := repository.NewRepository(s.DB)
-	svc := service.NewService(repo)
+	svc := service.NewService(repo, s.Authenticator)
 
 	r.Route("/auth", func(r chi.Router) {
-		r.Post("/register", svc.User.Register)
+		r.Post("/register", svc.Auth.Register)
+		r.Post("/login", svc.Auth.Login)
+		r.Post("/logout", svc.Auth.Logout)
 	})
 	
 	r.Route("/diaries", func(r chi.Router) {
+		r.Use(auth.AuthMiddleware(s.Authenticator))
+		
 		r.Get("/", svc.Diary.GetAll)
 		r.Get("/{id}", svc.Diary.GetById)
 		r.Post("/", svc.Diary.Create)

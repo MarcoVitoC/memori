@@ -50,9 +50,9 @@ func (r *UserRepository) Register(ctx context.Context, newUser *User) error {
 	})
 }
 
-func (r *UserRepository) GetByEmail(ctx context.Context, email string) (bool, error) {
+func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*User, error) {
 	query := `
-		SELECT id FROM users
+		SELECT * FROM users
 		WHERE email = $1
 	`
 
@@ -61,15 +61,22 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (bool, er
 
 	row := r.db.QueryRow(ctx, query, email)
 
-	var id uuid.UUID
-	if err := row.Scan(&id); err != nil {
+	user := new(User)
+	if err := row.Scan(
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.Password,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	); err != nil {
 		switch {
 		case errors.Is(err, pgx.ErrNoRows):
-			return false, nil
+			return nil, nil
 		default:
-			return false, err
+			return nil, err
 		}
 	}
 
-	return true, nil
+	return user, nil
 }

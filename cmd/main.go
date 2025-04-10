@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/MarcoVitoC/memori/internal/auth"
 	"github.com/MarcoVitoC/memori/internal/database"
 	"github.com/MarcoVitoC/memori/internal/env"
 	"github.com/MarcoVitoC/memori/internal/handler"
@@ -38,9 +39,12 @@ func main() {
 	}
 	defer db.Close()
 
+	authenticator := auth.NewAuthenticator(env.GetString("JWT_PRIVATE_KEY", "PRIVATE_KEY"))
+
 	server := handler.Server{
 		Addr: env.GetString("APP_PORT", ":8080"),
 		DB: db,
+		Authenticator: authenticator,
 	}
 
 	mux := server.Mount()

@@ -17,3 +17,11 @@ func BadRequest(w http.ResponseWriter, errors any) {
 func Conflict(w http.ResponseWriter, errors any) {
 	util.WriteResponse(w, http.StatusConflict, nil, errors)
 }
+
+func NotFound(w http.ResponseWriter, errors any) {
+	util.WriteResponse(w, http.StatusNotFound, nil, errors)
+}
+
+func Unauthorized(w http.ResponseWriter, errors any) {
+	util.WriteResponse(w, http.StatusUnauthorized, nil, errors)
+}

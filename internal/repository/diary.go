@@ -50,21 +50,21 @@ func (r *DiaryRepository) GetAll(ctx context.Context) ([]Diary, error) {
 	return diaries, nil
 }
 
-func (r *DiaryRepository) GetById(ctx context.Context, id string) (Diary, error) {
+func (r *DiaryRepository) GetById(ctx context.Context, id string) (*Diary, error) {
 	query := `
 		SELECT * FROM diaries
 		WHERE id = $1
 	`
 
 	row := r.db.QueryRow(ctx, query, id)
-	var diary Diary
+	diary := new(Diary)
 	if err := row.Scan(
 		&diary.ID,
 		&diary.Content,
 		&diary.CreatedAt,
 		&diary.UpdatedAt,
 	); err != nil {
-		return Diary{}, err
+		return nil, err
 	}
 
 	return diary, nil

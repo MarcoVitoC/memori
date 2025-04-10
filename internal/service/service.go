@@ -3,6 +3,7 @@ package service
 import (
 	"net/http"
 
+	"github.com/MarcoVitoC/memori/internal/auth"
 	"github.com/MarcoVitoC/memori/internal/repository"
 )
 
@@ -14,14 +15,16 @@ type Service struct {
 		Update(w http.ResponseWriter, r *http.Request)
 		Delete(w http.ResponseWriter, r *http.Request)
 	}
-	User interface {
+	Auth interface {
 		Register(w http.ResponseWriter, r *http.Request)
+		Login(w http.ResponseWriter, r *http.Request)
+		Logout(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-func NewService(repo repository.Repository) Service {
+func NewService(repo repository.Repository, authenticator *auth.JWTAuthenticator) Service {
 	return Service{
 		Diary: &DiaryService{repo},
-		User: &UserService{repo},
+		Auth: &AuthService{repo, authenticator},
 	}
 }
