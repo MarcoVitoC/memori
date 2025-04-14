@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+@theme {
+    --font-quicksand: "Quicksand", sans-serif;
+    --font-roboto: "Roboto", sans-serif;
+}
+
+html {
+    font-family: var(--font-roboto)
+}
