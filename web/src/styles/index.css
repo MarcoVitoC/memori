@@ -3,6 +3,7 @@
 @theme {
     --font-quicksand: "Quicksand", sans-serif;
     --font-roboto: "Roboto", sans-serif;
+    --breakpoint-xs: 32rem;
 }
 
 html {
