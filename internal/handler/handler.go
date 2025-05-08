@@ -5,10 +5,12 @@ import (
 	"time"
 
 	"github.com/MarcoVitoC/memori/internal/auth"
+	"github.com/MarcoVitoC/memori/internal/env"
 	"github.com/MarcoVitoC/memori/internal/repository"
 	"github.com/MarcoVitoC/memori/internal/service"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )
@@ -27,6 +29,15 @@ func (s *Server) Mount() http.Handler {
   r.Use(middleware.Logger)
   r.Use(middleware.Recoverer)
 
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins: []string{env.GetString("CORS_ALLOWED_ORIGIN", "http://localhost:5173")},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE"},
+		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders: []string{"Link"},
+		AllowCredentials: false,
+		MaxAge: 300,
+	}))
+
 	r.Use(middleware.Timeout(60 * time.Second))
 
 	repo := repository.NewRepository(s.DB)
@@ -39,7 +50,7 @@ func (s *Server) Mount() http.Handler {
 	})
 	
 	r.Route("/diaries", func(r chi.Router) {
-		r.Use(auth.AuthMiddleware(s.Authenticator))
+		// r.Use(auth.AuthMiddleware(s.Authenticator))
 		
 		r.Get("/", svc.Diary.GetAll)
 		r.Get("/{id}", svc.Diary.GetById)

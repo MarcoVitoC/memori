@@ -135,7 +135,7 @@ func setCookies(w http.ResponseWriter, jwt string, xsrf string) {
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name: "JWT_TOKEN",
+		Name: "JWT-Token",
 		Value: jwt,
 		Path: "/",
 		Expires: expireTime,
@@ -143,7 +143,7 @@ func setCookies(w http.ResponseWriter, jwt string, xsrf string) {
 	})
 
 	http.SetCookie(w, &http.Cookie{
-		Name: "XSRF_TOKEN",
+		Name: "X-CSRF-Token",
 		Value: xsrf,
 		Path: "/",
 		Expires: expireTime,
