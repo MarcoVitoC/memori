@@ -50,7 +50,7 @@ func (s *Server) Mount() http.Handler {
 	})
 	
 	r.Route("/diaries", func(r chi.Router) {
-		r.Use(auth.AuthMiddleware(s.Authenticator))
+		// r.Use(auth.AuthMiddleware(s.Authenticator))
 		
 		r.Get("/", svc.Diary.GetAll)
 		r.Get("/{id}", svc.Diary.GetById)

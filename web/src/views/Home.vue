@@ -1,10 +1,9 @@
 <script setup lang="ts">
   import { ref } from 'vue'
   import Calendar from "../components/ui/Calendar.vue"
-  import type { PostDiaryPayload } from "../types/diary"
-  import { GetEnv } from "../utils/env"
+  import type { PostDiaryPayload } from "../types/diary.ts"
 
-  const apiUrl = GetEnv('VITE_API_URL', 'http://localhost:8000')
+  const apiUrl = import.meta.env.VITE_API_URL
 
   const content = ref("")
   const setContent = (e: Event) => {
